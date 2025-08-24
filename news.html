@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="bn" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>বিস্তারিত — শেষ নিউজ</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <script defer src="./config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      const params = new URLSearchParams(location.search);
+      const id = params.get('id');
+      const driveIdRegex = window.SHESH.driveIdRegex;
+      const driveView = (url)=>{
+        if(!url) return url;
+        const m = url.match(driveIdRegex);
+        if(!m) return url;
+        return `https://drive.google.com/uc?export=view&id=${m[1]}`;
+      };
+      const fetchJson = async (u)=>{ const r = await fetch(u, {cache:'no-store'}); if(!r.ok) throw 0; return r.json(); };
+      let items = [];
+      try{
+        items = await fetchJson(window.SHESH.appsScriptFeed);
+      }catch(e){
+        items = await fetchJson(window.SHESH.dataPath);
+      }
+      const normalize = (row, idx)=>{
+        const pick = (obj, keys)=>{
+          for(const k of keys){
+            if(k in obj && obj[k]) return obj[k];
+            const found = Object.keys(obj).find(x=>x.toLowerCase()===k.toLowerCase());
+            if(found && obj[found]) return obj[found];
+          }
+          return "";
+        };
+        if(Array.isArray(row)) return { id: idx+1, title: String(row[1]||'') };
+        return {
+          id: String(pick(row, ['id','slug','ref']) || idx+1),
+          title: pick(row, ['title','headline','শিরোনাম']),
+          summary: pick(row, ['summary','content','body','বিবরণ']),
+          category: pick(row, ['category','ক্যাটাগরি','ধরন']) || 'সর্বশেষ',
+          image_url: driveView(pick(row, ['image_url','image','img','ছবি'])) || window.SHESH.imageFallback,
+          published_at: pick(row, ['published_at','time','date','timestamp']) || new Date().toISOString()
+        };
+      };
+      const list = (Array.isArray(items)?items:(items.items||[])).map(normalize);
+      const n = list.find(x=>String(x.id)===String(id));
+      const main = document.getElementById('detail');
+      if(!n){ main.innerHTML = "<p>খবর পাওয়া যায়নি।</p>"; return; }
+      main.innerHTML = `
+        <article class="card">
+          <div class="card-body">
+            <div class="meta"><span class="chip">${n.category}</span> · <time>${new Date(n.published_at).toLocaleString('bn-BD')}</time></div>
+            <h1 style="margin:.5rem 0 1rem">${n.title}</h1>
+            ${n.image_url ? `<img src="${n.image_url}" alt="${n.title}" style="width:100%;height:auto;border-radius:12px;margin:.5rem 0 1rem">` : ""}
+            <p style="font-size:16px">${n.summary||''}</p>
+          </div>
+        </article>
+        <p style="margin-top:16px"><a href="./">← সব খবর</a></p>
+      `;
+    });
+  </script>
+</head>
+<body>
+  <header><a href="./">← হোম</a></header>
+  <main style="padding:16px 20px">
+    <div id="detail">লোড হচ্ছে…</div>
+  </main>
+</body>
+</html>

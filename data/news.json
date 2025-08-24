@@ -1,0 +1,10 @@
+[
+  {
+    "id": "DEMO-1",
+    "title": "ডেমো নিউজ — কনফিগ ঠিকমতো বসালে এই ডেমো আর লাগবে না",
+    "summary": "এই খবরটি শুধু fallback হিসেবে রাখা। আপনার Apps Script চললে রিয়েল নিউজই দেখা যাবে।",
+    "category": "সর্বশেষ",
+    "image_url": "./assets/img/placeholder.jpg",
+    "published_at": "2025-08-24T19:25:05.674952Z"
+  }
+]
